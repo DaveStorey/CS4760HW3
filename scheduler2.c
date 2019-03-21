@@ -12,6 +12,8 @@
 #include <time.h>
 #include <signal.h>
 #include <semaphore.h>
+#include <fcntl.h>
+#include "sharedArray.h"
 
 //Signal handler to catch ctrl-c
 static volatile int keepRunning = 1;
@@ -19,10 +21,6 @@ static volatile int keepRunning = 1;
 void intHandler(int dummy) {
     keepRunning = 0;
 }
-
-struct sharedArray{
-	char * temp[100];
-};
 
 void scheduler(char* input, char* outfile, int limit, int total){
 	int k=0, i=0, j=0, alive = 1, timeFlag = 0, totalFlag = 0, limitFlag = 0, shmID, childStart, totalSpawn = 0, status, noChildFlag = 1;
@@ -32,9 +30,9 @@ void scheduler(char* input, char* outfile, int limit, int total){
 	struct sharedArray * holder = (struct sharedArray*)malloc(sizeof(struct sharedArray));
 	static size_t lineSize = 0;
 	ssize_t read;
-	char parameter1[32], parameter2[32], parameter3[32], parameter4[32], parameter5[32];
+	char parameter1[32], parameter2[32], parameter3[32], parameter4[32];
 	pid_t pid[total + 1], endID = 1;
-	sem_t mutex;
+	sem_t *mutex;
 	//Time variables for the time out function
 	time_t when, when2;
 	//File pointers for input and output, respectively
@@ -61,7 +59,7 @@ void scheduler(char* input, char* outfile, int limit, int total){
 		exit(EXIT_SUCCESS);
 	}
 	//Get and access shared memory and semaphore, storing strings from file.
-	sem_init(&mutex, 1, 1);
+	mutex = sem_open("pSem", O_CREAT, 0777, 1);
 	while((read = getline(&palind, &lineSize, fp)) != -1){
 		holder->temp[i] = malloc(strlen(palind)+1);
 		strcpy(holder->temp[i], palind);
@@ -70,8 +68,11 @@ void scheduler(char* input, char* outfile, int limit, int total){
 	shmID = shmget(key, sizeof(struct sharedArray), IPC_CREAT | IPC_EXCL | 0777);
 	shmPTR = (struct sharedArray *) shmat(shmID, NULL, 0);
 	shmPTR = holder;
-	//for (k = 0; k < i; k++)
-		printf("shmPTr address: %p\n", shmPTR);
+	printf("Parent shared memory ID: %d\n", shmID);
+	printf("Parent shared memory key: %li\n", key);
+	for(k = 0; k < i; k++){	
+		printf("Shared memory, parent: %s", shmPTR->temp[k]);
+	}
 	//Initializing pids to -1 
 	for(k = 0; k <= total; k++){
 		pid[k] = -1;
@@ -93,8 +94,7 @@ void scheduler(char* input, char* outfile, int limit, int total){
 				sprintf(parameter2, "%d", shmID);
 				sprintf(parameter3, "%d", childStart);
 				sprintf(parameter4, "%d", i);
-				sprintf(parameter5, "%p", shmPTR);
-				char * args[] = {parameter1, parameter2, parameter3, parameter4, parameter5, NULL};
+				char * args[] = {parameter1, parameter2, parameter3, parameter4, NULL};
 				//fprintf(outPut, "Child process %d launched.\n", getpid());
 				execvp("./palin\0", args);
 			}
@@ -128,7 +128,7 @@ void scheduler(char* input, char* outfile, int limit, int total){
 							limitFlag = 0;
 						}
 						else if (WIFSIGNALED(status)){
-							printf("Child ended with an uncaught signal, %d.\n", status);
+							printf("Child %d ended with an uncaught signal, %d.\n", pid[k], status);
 							limitFlag = 0;
 						}
 						else if (WIFSTOPPED(status)){
@@ -171,6 +171,7 @@ void scheduler(char* input, char* outfile, int limit, int total){
 	}
 	shmdt(shmPTR);
 	shmctl(shmID, IPC_RMID, NULL);
+	sem_unlink("pSem");
 	fclose(fp);
 	fclose(outPut);
 }
