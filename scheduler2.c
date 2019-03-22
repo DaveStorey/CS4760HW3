@@ -59,7 +59,6 @@ void scheduler(char* input, char* outfile, int limit, int total){
 	}
 	//Get and access shared memory and semaphore, storing strings from file.
 	mutex = sem_open("pSem", O_CREAT, 0777, 1);
-	
 	shmID = shmget(key, sizeof(char[80][100]), IPC_CREAT | IPC_EXCL | 0777);
 	char (*shmPTR)[100] = shmat(shmID, NULL, 0);
 	while((read = getline(&palind, &lineSize, fp)) != -1){

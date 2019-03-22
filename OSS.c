@@ -37,6 +37,8 @@ int main(int argc, char * argv[]){
 				break;
 			case 's':
 				limit = atoi(argv[x+1]);
+				if (limit > 20)
+					limit = 20;
 				break;
 			case 'n':
 				total = atoi(argv[x+1]);
