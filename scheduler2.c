@@ -74,7 +74,7 @@ void scheduler(char* input, char* outfile, int limit, int total){
 	//While loop keeps running until all children are dead, ctrl-c, or time is reached.
 	while((alive > 0) && (keepRunning == 1) && (timeFlag == 0)){
 		time(&when2);
-		if ((when2 - when) >= 15){
+		if (difftime(when2, when) >= 120){
 			timeFlag = 1;
 		}
 		/*If statement will only run check for new children to spawn if limit has not been hit.  If limit has been hit, it will allow the clock to continue to increment to allow currently alive children to naturally die.*/

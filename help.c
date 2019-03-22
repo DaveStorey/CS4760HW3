@@ -1,7 +1,7 @@
 #include<stdio.h>
 
 void help(){
-	printf("This program will take a file of strings (one per line, 80 characters or less, 100 strings max)\n and create two files: one with all palindromes in the file, one with all non-palindromes.
+	printf("This program will take a file of strings (one per line, 80 characters or less, 100 strings max)\n and create two files: one with all palindromes in the file, one with all non-palindromes.\n");
 	printf("There are four options:\n");
 	printf("-h, which, as you have just discovered prints a help message.\n");
 	printf("-s <number of children>, which specifies  the maximum number of children to be alive at any one time (note this number cannot be greater than 20).\n");

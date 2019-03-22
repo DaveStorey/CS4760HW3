@@ -64,11 +64,9 @@ int main(int argc, char * argv[]){
 	outputNoPal = fopen(argv[4], "a");
 	for(i = 0; i < pal; i++){
 		fprintf(outputPal, "%d	%s	%s\n", pid, argv[2], shmPTR[palHolder[i]]);
-		printf("%d	%s	%s\n", pid, argv[2], shmPTR[palHolder[i]]);
 	}
 	for(i = 0; i < noPal; i++){
 		fprintf(outputNoPal, "%d	%s	%s\n", pid, argv[2], shmPTR[noPalHolder[i]]);
-		printf("%d	%s	%s\n", pid, argv[2], shmPTR[noPalHolder[i]]);
 	}
 	fclose(outputPal);
 	fclose(outputNoPal);
