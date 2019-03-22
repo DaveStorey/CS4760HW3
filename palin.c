@@ -5,23 +5,23 @@
 #include<sys/types.h>
 #include<unistd.h>
 #include<stdlib.h>
-#include<errno.h>
 #include<semaphore.h>
 #include<string.h>
 #include<ctype.h>
-
+#include<time.h>
 
 int main(int argc, char * argv[]){
 	int i, j = 0, k, nonAlpha, noPal = 0, pal = 0;
 	char * ptr;
-	char palHolder[80][5], noPalHolder[80][5];
+	int palHolder[5], noPalHolder[5];
 	char temp, temp1;
 	pid_t pid = getpid();
+	FILE * outputPal;
+	FILE * outputNoPal;
+	time_t now;
 	unsigned long key = strtoul(argv[0], &ptr, 10);
 	int listStart = (int) strtol(argv[1], &ptr, 10);
-	int childNum = (int) strtol(argv[2], &ptr, 10);
 	int shmID = shmget(key, sizeof(char[80][100]), O_RDONLY);
-	//struct sharedArray *shmPTR = (struct sharedArray*) shmat(shmID, NULL, 0);
 	char (*shmPTR)[100] = shmat(shmID, NULL, 0);
 	for(i = listStart; i < (listStart + 5); i++){
 		j = 0;
@@ -40,7 +40,7 @@ int main(int argc, char * argv[]){
 				nonAlpha = 1;
 			}
 			if ((temp != temp1) && (nonAlpha == 0)){
-				strcpy(shmPTR[i], noPalHolder[noPal];
+				noPalHolder[noPal] = i;
 				noPal++;
 				break;
 			}
@@ -50,13 +50,30 @@ int main(int argc, char * argv[]){
 			}
 		}
 		if (k <= j){
-			strcpy(shmPTR[i], palHolder[pal]);
+			palHolder[pal] = i;
 			pal++;
 		}
 	}
 	sem_t *sem;
 	sem = sem_open("pSem", O_EXCL);
 	sem_wait(sem);
+	time(&now);
+	fprintf(stderr, "Process %d entering critical section at %s\n", pid, ctime(&now));
+	sleep(2);
+	outputPal = fopen(argv[3], "a");
+	outputNoPal = fopen(argv[4], "a");
+	for(i = 0; i < pal; i++){
+		fprintf(outputPal, "%d	%s	%s\n", pid, argv[2], shmPTR[palHolder[i]]);
+		printf("%d	%s	%s\n", pid, argv[2], shmPTR[palHolder[i]]);
+	}
+	for(i = 0; i < noPal; i++){
+		fprintf(outputNoPal, "%d	%s	%s\n", pid, argv[2], shmPTR[noPalHolder[i]]);
+		printf("%d	%s	%s\n", pid, argv[2], shmPTR[noPalHolder[i]]);
+	}
+	fclose(outputPal);
+	fclose(outputNoPal);
+	sleep(2);
+	fprintf(stderr, "Process %d exiting critical section at %s\n", pid, ctime(&now));
 	sem_post(sem);
 	sem_close(sem);
 	printf("Process %d exiting.\n", getpid());

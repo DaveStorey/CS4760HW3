@@ -24,12 +24,12 @@ void intHandler(int dummy) {
 void scheduler(char* input, char* outfile, int limit, int total){
 	int k=0, i=0, j=0, alive = 1, timeFlag = 0, totalFlag = 0, limitFlag = 0, shmID, childStart = 0, totalSpawn = 0, status, noChildFlag = 1;
 	char * holder[80][100];
-	//struct sharedArray *shmPTR;
+	char * palinOut = "palin.out";
+	char * noPalinOut = "nopalin.out";
 	char *palind = NULL;
-	//struct sharedArray holder;
 	static size_t lineSize = 0;
 	ssize_t read;
-	char parameter1[32], parameter2[32], parameter3[32];
+	char parameter1[32], parameter2[32], parameter3[32], parameter4[32], parameter5[32];
 	pid_t pid[total + 1], endID = 1;
 	sem_t *mutex;
 	//Time variables for the time out function
@@ -78,7 +78,6 @@ void scheduler(char* input, char* outfile, int limit, int total){
 		if ((when2 - when) >= 15){
 			timeFlag = 1;
 		}
-		
 		/*If statement will only run check for new children to spawn if limit has not been hit.  If limit has been hit, it will allow the clock to continue to increment to allow currently alive children to naturally die.*/
 		if((totalFlag == 0) && (limitFlag == 0)){
 			if((pid[j] = fork()) == 0){
@@ -86,9 +85,11 @@ void scheduler(char* input, char* outfile, int limit, int total){
 				childStart = totalSpawn * 5;
 				sprintf(parameter1, "%li", key);
 				sprintf(parameter2, "%d", childStart);
-				sprintf(parameter3, "%d", i);
-				char * args[] = {parameter1, parameter2, parameter3, "palin.out\0", "nopalin.out\0", NULL};
-				//fprintf(outPut, "Child process %d launched.\n", getpid());
+				printf("%d spawned.\n", totalSpawn);
+				sprintf(parameter3, "%d", totalSpawn);
+				sprintf(parameter4, "%s", palinOut);
+				sprintf(parameter5, "%s", noPalinOut);
+				char * args[] = {parameter1, parameter2, parameter3, parameter4, parameter5, NULL};
 				execvp("./palin\0", args);
 			}
 			else{
@@ -116,8 +117,6 @@ void scheduler(char* input, char* outfile, int limit, int total){
 					alive--;
 					if (alive >= 0){
 						if (WIFEXITED(status)){
-							limitFlag = 0;
-							//fprintf(outPut, "Child process %d terminated.\n", pid[k]);
 							limitFlag = 0;
 						}
 						else if (WIFSIGNALED(status)){
