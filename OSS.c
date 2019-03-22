@@ -15,13 +15,11 @@
 
 
 int main(int argc, char * argv[]){      
-	int opt, limit = 3, x = 0, total = 3, hFlag = 0;
-	char * outfile;
+	int opt, limit = 5, x = 0, total = 10, hFlag = 0;
 	char * infile;
-	//Assigning default case names.
+	//Assigning default case name.
 	infile = "input.txt";
-	outfile = "output.txt";
-	if((opt = getopt(argc, argv, "-hiosn")) != -1){
+	if((opt = getopt(argc, argv, "-hisn")) != -1){
 		do{
 			x++;
 			switch(opt){
@@ -31,9 +29,6 @@ int main(int argc, char * argv[]){
 				break;
 			case 'i':
 				infile = argv[x+1];
-				break;
-			case 'o':
-				outfile = argv[x+1];
 				break;
 			case 's':
 				limit = atoi(argv[x+1]);
@@ -47,9 +42,9 @@ int main(int argc, char * argv[]){
 			case 1:
 				break;
 			}
-		} while((opt = getopt(argc, argv, "-hiosn")) != -1);
+		} while((opt = getopt(argc, argv, "-hisn")) != -1);
 	}
 	if (hFlag == 0)
-		scheduler(infile, outfile, limit, total);
+		scheduler(infile, limit, total);
 	return 0; 
 }

@@ -8,7 +8,7 @@
 #include<semaphore.h>
 #include<string.h>
 #include<ctype.h>
-#include<time.h>
+#include<time.h>	
 
 int main(int argc, char * argv[]){
 	int i, j = 0, k, nonAlpha, noPal = 0, pal = 0;
@@ -63,7 +63,9 @@ int main(int argc, char * argv[]){
 	outputPal = fopen(argv[3], "a");
 	outputNoPal = fopen(argv[4], "a");
 	for(i = 0; i < pal; i++){
-		fprintf(outputPal, "%d	%s	%s\n", pid, argv[2], shmPTR[palHolder[i]]);
+		if(strlen(shmPTR[palHolder[i]]) > 1){
+			fprintf(outputPal, "%d	%s	%s\n", pid, argv[2], shmPTR[palHolder[i]]);
+		}
 	}
 	for(i = 0; i < noPal; i++){
 		fprintf(outputNoPal, "%d	%s	%s\n", pid, argv[2], shmPTR[noPalHolder[i]]);
@@ -71,10 +73,10 @@ int main(int argc, char * argv[]){
 	fclose(outputPal);
 	fclose(outputNoPal);
 	sleep(2);
+	time(&now);
 	fprintf(stderr, "Process %d exiting critical section at %s\n", pid, ctime(&now));
 	sem_post(sem);
 	sem_close(sem);
-	printf("Process %d exiting.\n", getpid());
 	shmdt(shmPTR);
 	return 0;
 }

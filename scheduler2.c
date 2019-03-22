@@ -1,6 +1,3 @@
-#ifndef SCHEDULER
-#define SCHEDULER
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,7 +18,7 @@ void intHandler(int dummy) {
     keepRunning = 0;
 }
 
-void scheduler(char* input, char* outfile, int limit, int total){
+void scheduler(char* input, int limit, int total){
 	int k=0, i=0, j=0, alive = 1, timeFlag = 0, totalFlag = 0, limitFlag = 0, shmID, childStart = 0, totalSpawn = 0, status, noChildFlag = 1;
 	char * holder[80][100];
 	char * palinOut = "palin.out";
@@ -36,21 +33,14 @@ void scheduler(char* input, char* outfile, int limit, int total){
 	time_t when, when2;
 	//File pointers for input and output, respectively
 	FILE * fp;
-	FILE * outPut;
 	//Key variable for shared memory access.
 	unsigned long key;
 	srand(time(0));
 	key = rand();
 	//Setting initial time for later check.
 	time(&when);
-	outPut = fopen(outfile, "a");
 	fp = fopen(input, "r");
 	//Check for file error.
-	if (outPut == NULL){
-		perror("Error");
-		printf("Output file could not be created.\n");
-		exit(EXIT_SUCCESS);
-	}
 	if (fp == NULL){
 		perror("Error");
 		printf("File given: %s, error number: %d\n", input, errno);
@@ -74,17 +64,16 @@ void scheduler(char* input, char* outfile, int limit, int total){
 	//While loop keeps running until all children are dead, ctrl-c, or time is reached.
 	while((alive > 0) && (keepRunning == 1) && (timeFlag == 0)){
 		time(&when2);
-		if (difftime(when2, when) >= 120){
+		if (difftime(when2, when) >= 20){
 			timeFlag = 1;
 		}
 		/*If statement will only run check for new children to spawn if limit has not been hit.  If limit has been hit, it will allow the clock to continue to increment to allow currently alive children to naturally die.*/
 		if((totalFlag == 0) && (limitFlag == 0)){
-			if((pid[j] = fork()) == 0){
+			if((pid[totalSpawn] = fork()) == 0){
 			//Converting key, shmID and life to char* for passing to exec.
 				childStart = totalSpawn * 5;
 				sprintf(parameter1, "%li", key);
 				sprintf(parameter2, "%d", childStart);
-				printf("%d spawned.\n", totalSpawn);
 				sprintf(parameter3, "%d", totalSpawn);
 				sprintf(parameter4, "%s", palinOut);
 				sprintf(parameter5, "%s", noPalinOut);
@@ -119,7 +108,6 @@ void scheduler(char* input, char* outfile, int limit, int total){
 							limitFlag = 0;
 						}
 						else if (WIFSIGNALED(status)){
-							printf("Child %d ended with an uncaught signal, %d.\n", pid[k], status);
 							limitFlag = 0;
 						}
 						else if (WIFSTOPPED(status)){
@@ -137,23 +125,21 @@ void scheduler(char* input, char* outfile, int limit, int total){
 			limitFlag = 1;
 		}
 	}
+	//Messages for various exit cases.
 	if(timeFlag == 1){
 		printf("Program has reached its allotted time, exiting.\n");
-		//fprintf(outPut, "Scheduler terminated at due to time limit.\n");
 	}
-	if(totalFlag == 1){
-		printf("Program has reached its allotted children, exiting.\n");
-		//fprintf(outPut, "Scheduler terminated at due to process limit.\n");
-	}
-	if(keepRunning == 0){
+	else if(keepRunning == 0){
 		printf("Terminated due to ctrl-c signal.\n");
-		//fprintf(outPut, "Scheduler terminated due to ctrl-c signal.\n");
+	}
+	else if(totalFlag == 1){
+		printf("Program has reached its allotted children, exiting.\n");
 	}
 	j = 0;
+	//Killing any remaining children before destroying shared memory and semaphore.
 	if(alive > 0){
 		while(pid[j] != -1){
-			kill(pid[i], SIGQUIT);
-			printf("Killing process %d\n", pid[j]);
+			kill(pid[j], SIGQUIT);
 			j++;
 		}
 	}
@@ -161,7 +147,4 @@ void scheduler(char* input, char* outfile, int limit, int total){
 	shmctl(shmID, IPC_RMID, NULL);
 	sem_unlink("pSem");
 	fclose(fp);
-	fclose(outPut);
 }
-
-#endif
