@@ -13,7 +13,6 @@
 #include <signal.h>
 #include <semaphore.h>
 #include <fcntl.h>
-#include "sharedArray.h"
 
 //Signal handler to catch ctrl-c
 static volatile int keepRunning = 1;
@@ -23,14 +22,14 @@ void intHandler(int dummy) {
 }
 
 void scheduler(char* input, char* outfile, int limit, int total){
-	int k=0, i=0, j=0, alive = 1, timeFlag = 0, totalFlag = 0, limitFlag = 0, shmID, childStart, totalSpawn = 0, status, noChildFlag = 1;
-	//Pointer for the shared memory timer
-	struct sharedArray * shmPTR;
+	int k=0, i=0, j=0, alive = 1, timeFlag = 0, totalFlag = 0, limitFlag = 0, shmID, childStart = 0, totalSpawn = 0, status, noChildFlag = 1;
+	char * holder[80][100];
+	//struct sharedArray *shmPTR;
 	char *palind = NULL;
-	struct sharedArray * holder = (struct sharedArray*)malloc(sizeof(struct sharedArray));
+	//struct sharedArray holder;
 	static size_t lineSize = 0;
 	ssize_t read;
-	char parameter1[32], parameter2[32], parameter3[32], parameter4[32];
+	char parameter1[32], parameter2[32], parameter3[32];
 	pid_t pid[total + 1], endID = 1;
 	sem_t *mutex;
 	//Time variables for the time out function
@@ -60,18 +59,12 @@ void scheduler(char* input, char* outfile, int limit, int total){
 	}
 	//Get and access shared memory and semaphore, storing strings from file.
 	mutex = sem_open("pSem", O_CREAT, 0777, 1);
+	
+	shmID = shmget(key, sizeof(char[80][100]), IPC_CREAT | IPC_EXCL | 0777);
+	char (*shmPTR)[100] = shmat(shmID, NULL, 0);
 	while((read = getline(&palind, &lineSize, fp)) != -1){
-		holder->temp[i] = malloc(strlen(palind)+1);
-		strcpy(holder->temp[i], palind);
+		strcpy(shmPTR[i], palind);
 		i++;
-	}
-	shmID = shmget(key, sizeof(struct sharedArray), IPC_CREAT | IPC_EXCL | 0777);
-	shmPTR = (struct sharedArray *) shmat(shmID, NULL, 0);
-	shmPTR = holder;
-	printf("Parent shared memory ID: %d\n", shmID);
-	printf("Parent shared memory key: %li\n", key);
-	for(k = 0; k < i; k++){	
-		printf("Shared memory, parent: %s", shmPTR->temp[k]);
 	}
 	//Initializing pids to -1 
 	for(k = 0; k <= total; k++){
@@ -90,11 +83,11 @@ void scheduler(char* input, char* outfile, int limit, int total){
 		if((totalFlag == 0) && (limitFlag == 0)){
 			if((pid[j] = fork()) == 0){
 			//Converting key, shmID and life to char* for passing to exec.
+				childStart = totalSpawn * 5;
 				sprintf(parameter1, "%li", key);
-				sprintf(parameter2, "%d", shmID);
-				sprintf(parameter3, "%d", childStart);
-				sprintf(parameter4, "%d", i);
-				char * args[] = {parameter1, parameter2, parameter3, parameter4, NULL};
+				sprintf(parameter2, "%d", childStart);
+				sprintf(parameter3, "%d", i);
+				char * args[] = {parameter1, parameter2, parameter3, "palin.out\0", "nopalin.out\0", NULL};
 				//fprintf(outPut, "Child process %d launched.\n", getpid());
 				execvp("./palin\0", args);
 			}
@@ -165,9 +158,6 @@ void scheduler(char* input, char* outfile, int limit, int total){
 			printf("Killing process %d\n", pid[j]);
 			j++;
 		}
-	}
-	for(j=0; j<=0; j++){
-		free(holder->temp[j]);
 	}
 	shmdt(shmPTR);
 	shmctl(shmID, IPC_RMID, NULL);

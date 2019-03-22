@@ -7,36 +7,59 @@
 #include<stdlib.h>
 #include<errno.h>
 #include<semaphore.h>
-#include "sharedArray.h"
+#include<string.h>
+#include<ctype.h>
 
 
 int main(int argc, char * argv[]){
-	int i;
+	int i, j = 0, k, nonAlpha, noPal = 0, pal = 0;
 	char * ptr;
+	char palHolder[80][5], noPalHolder[80][5];
+	char temp, temp1;
 	pid_t pid = getpid();
-	struct sharedArray * holder = (struct sharedArray*)malloc(sizeof(struct sharedArray));
 	unsigned long key = strtoul(argv[0], &ptr, 10);
-	int listStart = (int) strtol(argv[2], &ptr, 10);
-	int shmID = (int) strtol(argv[1], &ptr, 10);
-	int childNum = (int) strtol(argv[3], &ptr, 10);
-	shmID = shmget(key, sizeof(struct sharedArray*), O_RDONLY);
-	struct sharedArray * shmPTR = (struct sharedArray *) shmat(shmID, NULL, 0);
+	int listStart = (int) strtol(argv[1], &ptr, 10);
+	int childNum = (int) strtol(argv[2], &ptr, 10);
+	int shmID = shmget(key, sizeof(char[80][100]), O_RDONLY);
+	//struct sharedArray *shmPTR = (struct sharedArray*) shmat(shmID, NULL, 0);
+	char (*shmPTR)[100] = shmat(shmID, NULL, 0);
+	for(i = listStart; i < (listStart + 5); i++){
+		j = 0;
+		strtok(shmPTR[i], "\n");
+		k = strlen(shmPTR[i])-1;
+		while (k > j){
+			nonAlpha = 0;
+			temp = tolower(shmPTR[i][j]);
+			temp1 = tolower(shmPTR[i][k]);
+			if (temp < 'a' || temp > 'z'){
+				j++;
+				nonAlpha = 1;
+			}
+			if (temp1 < 'a' || temp1 > 'z'){
+				k--;
+				nonAlpha = 1;
+			}
+			if ((temp != temp1) && (nonAlpha == 0)){
+				strcpy(shmPTR[i], noPalHolder[noPal];
+				noPal++;
+				break;
+			}
+			if (nonAlpha == 0){
+				k--;
+				j++;
+			}
+		}
+		if (k <= j){
+			strcpy(shmPTR[i], palHolder[pal]);
+			pal++;
+		}
+	}
 	sem_t *sem;
 	sem = sem_open("pSem", O_EXCL);
 	sem_wait(sem);
-	for(i = 0; i < 100; i++){
-		shmID = shmget(key, sizeof(char *), O_RDONLY);
-		shmPTR->temp[i] = (char *) shmat(shmID, NULL, 0);
-	}
-	printf("Child %d Shared memory ID:%d.\n", pid, shmID);
-	printf("Child %d Shared memory key:%li\n", pid, key);
-	for(i = 0; i < 5; i++){
-		printf("In child %d. Shared memory:%s\n", pid, shmPTR->temp[i]);		
-	}
 	sem_post(sem);
 	sem_close(sem);
 	printf("Process %d exiting.\n", getpid());
 	shmdt(shmPTR);
-	sem_unlink("pSem");
 	return 0;
 }
