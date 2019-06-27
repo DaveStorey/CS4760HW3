@@ -1,0 +1,5 @@
+David Storey
+Operating Systems
+April 16, 2019
+Project 4
+This project takes several optional command line arguments and will spawn up to child processes using fork() and execvp().  The child processes access shared memory with an array of process control blocks. Each child will calculate a random chance of terminating during it's assigned timeslice.  If it does not terminate, it will calculate a random chance of being blocked.  If it is not blocked, it will have a longer timeslice, but a lower priority.  There are also a small number of processes that are spawned as priority 0, which will always be scheduled when present, and do not drop in priority.  The output file is output.txt.

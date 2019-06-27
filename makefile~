@@ -1,0 +1,22 @@
+all: master palin
+
+master: OSS.o scheduler2.o help.o
+	gcc OSS.o scheduler2.o help.o -lpthread -lrt -o master
+	
+master.o: OSS.c scheduler.h help.h
+	gcc -c OSS.c -o master.o
+	
+scheduler2.o: scheduler2.c scheduler.h
+	gcc -c scheduler2.c -lpthread -lrt -o scheduler2.o
+
+help.o: help.c help.h
+	gcc -c help.c -o help.o
+
+palin: palin.o
+	gcc palin.c -lpthread -lrt -o palin
+	
+palin.o: palin.c
+	gcc palin.c -lpthread -lrt -o palin.0
+	
+clean:
+	rm *.o

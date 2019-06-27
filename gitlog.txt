@@ -1,0 +1,41 @@
+commit 8852ce3f986dbf57b8ef8ab209b8840874411928
+Author: David Storey <dstorey65@gmail.com>
+Date:   Thu Mar 21 22:22:30 2019 -0500
+
+    final commit
+
+commit 15b29e2b92baf28eade4b771dff8709fbba1b342
+Author: David Storey <dstorey65@gmail.com>
+Date:   Thu Mar 21 21:14:47 2019 -0500
+
+    Timer adjustment
+
+commit e8be7bd52c8b840bdf3b4b8ba397cd110f32d7c7
+Author: David Storey <dstorey65@gmail.com>
+Date:   Thu Mar 21 21:10:50 2019 -0500
+
+    Output looking good, cleanup continuing; adding preprocessor directives to header files.
+
+commit f0ac7087689671f79cfcd995ca0ba014c3061dca
+Author: David Storey <dstorey65@gmail.com>
+Date:   Thu Mar 21 20:59:58 2019 -0500
+
+    Output looking good, cleanup continuing.
+
+commit 32a004b771f21aea2d2322966e224132a15e521b
+Author: David Storey <dstorey65@gmail.com>
+Date:   Thu Mar 21 20:17:40 2019 -0500
+
+    Shared memory working, adding output files.
+
+commit 1da89c1e73fa02a760c7679a6ee8381aed45c586
+Author: David Storey <dstorey65@gmail.com>
+Date:   Thu Mar 21 18:35:01 2019 -0500
+
+    With semaphores, still having issues with shared memory
+
+commit 8302060c0f13ab6657f86306c1440ad57102d6b4
+Author: David Storey <dstorey65@gmail.com>
+Date:   Thu Mar 21 14:15:23 2019 -0500
+
+    First commit
